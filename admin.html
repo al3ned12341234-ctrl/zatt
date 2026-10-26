@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>لوحة تحكم ZATT</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#582b30;--deep:#45212a;--gold:#a77c4f;--soft:#e6caa2;--cream:#f4ecdf;--white:#fffdf9;--ok:#2e7d4f;--err:#b83a3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo',sans-serif;background:var(--cream);color:#2a1a1c;line-height:1.6}
+button,input,select,textarea{font-family:inherit;font-size:1rem}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login-box{background:var(--white);border:2px solid var(--gold);border-radius:16px;padding:32px 26px;width:100%;max-width:360px;text-align:center}
+.login-box h1{font-family:'Amiri',serif;color:var(--primary);font-size:1.8rem;margin-bottom:6px}
+.login-box p{color:#6e5d5d;margin-bottom:18px}
+input[type=text],input[type=password],input[type=url],select,textarea{width:100%;padding:11px 13px;border:2px solid rgba(167,124,79,.35);border-radius:10px;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);outline:none}
+textarea{min-height:90px;resize:vertical}
+.btn{border:none;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;background:var(--primary);color:var(--soft)}
+.btn.ghost{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+.btn.danger{background:transparent;color:var(--err);border:2px solid var(--err);padding:6px 12px}
+.btn.small{padding:6px 12px;font-size:.9rem}
+.msg{margin-top:12px;color:var(--err);min-height:1.4em}
+#app{display:none}
+.bar{position:sticky;top:0;z-index:20;background:var(--primary);color:var(--soft);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar h1{font-family:'Amiri',serif;font-size:1.4rem;flex:1;min-width:140px}
+.bar .state{font-size:.9rem}
+.bar .btn{background:var(--soft);color:var(--primary)}
+.wrap{max-width:900px;margin:0 auto;padding:18px 14px 80px;display:grid;gap:18px}
+.card{background:var(--white);border:1px solid rgba(167,124,79,.4);border-radius:14px;padding:18px}
+.card h2{font-family:'Amiri',serif;color:var(--primary);font-size:1.4rem;margin-bottom:12px}
+label{display:block;font-weight:600;color:var(--primary);margin:12px 0 5px}
+.hint{font-size:.85rem;color:#6e5d5d;margin-top:4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.prod{border:2px solid rgba(167,124,79,.35);border-radius:12px;padding:14px;margin-top:14px;background:#fff}
+.prod-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.prod-head b{flex:1;color:var(--primary)}
+.slide{display:grid;grid-template-columns:90px 1fr 1fr auto;gap:8px;margin-top:8px;align-items:center}
+@media(max-width:560px){.slide{grid-template-columns:1fr 1fr}.slide input:nth-child(2){grid-column:1/-1}}
+.note{background:#fbf3e4;border:1px dashed var(--gold);border-radius:10px;padding:12px;font-size:.92rem}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="login-box">
+    <h1>لوحة تحكم ZATT</h1>
+    <p>ادخل كلمة السر للمتابعة</p>
+    <input type="password" id="pw" placeholder="كلمة السر" autocomplete="current-password">
+    <div class="msg" id="loginMsg"></div>
+    <button class="btn" id="loginBtn" style="width:100%;margin-top:6px">دخول</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="bar">
+    <h1>لوحة تحكم ZATT</h1>
+    <span class="state" id="state">لا توجد تعديلات</span>
+    <button class="btn" id="saveBtn">حفظ وتنزيل content.js</button>
+  </div>
+  <div class="wrap">
+    <div class="note">بعد التعديل اضغط «حفظ وتنزيل»، وارفع ملف <b>content.js</b> الجديد مكان القديم على الاستضافة بجانب index.html. التعديلات بتظهر على الموقع بعد الرفع.</div>
+    <div id="form"></div>
+    <div class="card">
+      <h2>استيراد نسخة محفوظة</h2>
+      <p class="hint">لو لوحة التحكم مش شايفة content.js الحالي، اختاره من هنا.</p>
+      <input type="file" id="imp" accept=".js">
+    </div>
+  </div>
+</div>
+
+<script src="content.js"></script>
+<script>
+let C = window.SITE_CONTENT ? JSON.parse(JSON.stringify(window.SITE_CONTENT)) : null;
+let dirty = false;
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function sha(t){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+async function login(){
+  if(!C){ $('loginMsg').textContent = 'ملف content.js مش موجود في نفس الفولدر.'; return; }
+  try {
+    if (await sha($('pw').value) === C.adminHash){ $('login').style.display='none'; $('app').style.display='block'; draw(); }
+    else $('loginMsg').textContent = 'كلمة السر غير صحيحة';
+  } catch(e){ $('loginMsg').textContent = 'افتح الملف من الاستضافة (https) أو من الكمبيوتر مباشرة.'; }
+}
+$('loginBtn').onclick = login;
+$('pw').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+const get = (o,p) => p.split('.').reduce((a,k) => a == null ? a : a[k], o);
+function set(p,v){
+  const k = p.split('.'), last = k.pop();
+  let o = C; k.forEach(x => { o = o[x]; });
+  o[last] = v;
+}
+function mark(){ dirty = true; $('state').textContent = 'فيه تعديلات لسه متحفظتش'; }
+
+function field(label, path, opts={}){
+  const v = get(C, path);
+  const val = opts.list ? (v||[]).join('\n') : v;
+  const attrs = `data-p="${path}"${opts.list ? ' data-list="1"' : ''}`;
+  const input = opts.area || opts.list
+    ? `<textarea ${attrs}${opts.dir?` dir="${opts.dir}"`:''}>${esc(val)}</textarea>`
+    : `<input type="text" ${attrs}${opts.dir?` dir="${opts.dir}"`:''} value="${esc(val)}">`;
+  return `<label>${label}</label>${input}${opts.hint?`<div class="hint">${opts.hint}</div>`:''}`;
+}
+
+function draw(){
+  let h = '';
+  h += `<div class="card"><h2>الهيدر والمقدمة</h2>
+    ${field('عنوان الهيدر','headerTitle')}${field('الجملة تحت العنوان','headerSubtitle')}
+    ${field('عنوان المقدمة','heroTitle')}${field('نص المقدمة','heroText',{area:1})}</div>`;
+  h += `<div class="card"><h2>الشريط المتحرك</h2>${field('الجمل (كل جملة في سطر)','marquee',{list:1})}</div>`;
+  h += `<div class="card"><h2>المنتجات (${C.products.length})</h2>`;
+  C.products.forEach((p,i) => {
+    h += `<div class="prod"><div class="prod-head"><b>${i+1}. ${esc(p.name)}</b>
+      <button class="btn ghost small" data-act="up" data-i="${i}" ${i===0?'disabled':''}>▲</button>
+      <button class="btn ghost small" data-act="down" data-i="${i}" ${i===C.products.length-1?'disabled':''}>▼</button>
+      <button class="btn danger small" data-act="del" data-i="${i}">حذف</button></div>
+      <div class="row"><div>${field('اسم المنتج',`products.${i}.name`)}</div><div>${field('السعر (ج.م)',`products.${i}.price`,{dir:'ltr'})}</div></div>
+      ${field('الوصف',`products.${i}.desc`,{area:1})}
+      ${field('المميزات (كل ميزة في سطر)',`products.${i}.features`,{list:1})}
+      <label>الصور والفيديو</label>`;
+    (p.slides||[]).forEach((sl,k) => {
+      h += `<div class="slide">
+        <select data-p="products.${i}.slides.${k}.type"><option value="image"${sl.type!=='video'?' selected':''}>صورة</option><option value="video"${sl.type==='video'?' selected':''}>فيديو</option></select>
+        <input type="text" dir="ltr" placeholder="images/dress1-front.jpg" data-p="products.${i}.slides.${k}.src" value="${esc(sl.src)}">
+        <input type="text" placeholder="الوصف" data-p="products.${i}.slides.${k}.label" value="${esc(sl.label)}">
+        <button class="btn danger small" data-act="delslide" data-i="${i}" data-k="${k}">×</button></div>`;
+    });
+    h += `<div class="hint">اكتب مسار الملف (مثال: images/dress1.jpg) أو رابط كامل. لو سبته فاضي هيظهر مكان «قريباً».</div>
+      <button class="btn ghost small" style="margin-top:8px" data-act="addslide" data-i="${i}">+ إضافة صورة/فيديو</button></div>`;
+  });
+  h += `<button class="btn" style="margin-top:14px" data-act="addprod">+ إضافة منتج</button></div>`;
+  h += `<div class="card"><h2>التواصل</h2>
+    <div class="row"><div>${field('رقم الهاتف','contact.phone',{dir:'ltr'})}</div>
+    <div>${field('رقم الواتساب (بالكود الدولي)','contact.whatsapp',{dir:'ltr',hint:'مثال: 201024642637'})}</div></div>
+    ${field('رابط الإنستجرام','contact.instagram',{dir:'ltr'})}</div>`;
+  h += `<div class="card"><h2>تغيير كلمة السر</h2><label>كلمة سر جديدة</label>
+    <input type="password" id="newpw" autocomplete="new-password"><div class="hint">سيبها فاضية لو مش عايز تغيّرها. التغيير بيتحفظ مع content.js.</div></div>`;
+  $('form').innerHTML = h;
+}
+
+$('form').addEventListener('input', e => {
+  const t = e.target, p = t.dataset.p; if(!p) return;
+  set(p, t.dataset.list ? t.value.split('\n').map(x => x.trim()).filter(Boolean) : t.value);
+  mark();
+});
+
+$('form').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act, i = +b.dataset.i, k = +b.dataset.k, P = C.products;
+  if(a==='up' && i>0) [P[i-1],P[i]] = [P[i],P[i-1]];
+  else if(a==='down' && i<P.length-1) [P[i+1],P[i]] = [P[i],P[i+1]];
+  else if(a==='del'){ if(!confirm('حذف «'+P[i].name+'»؟')) return; P.splice(i,1); }
+  else if(a==='addprod') P.push({name:'منتج جديد',price:'',desc:'',features:[],slides:[{type:'image',src:'',label:'صورة أمامية'}]});
+  else if(a==='addslide') P[i].slides.push({type:'image',src:'',label:''});
+  else if(a==='delslide') P[i].slides.splice(k,1);
+  else return;
+  mark(); draw();
+});
+
+$('saveBtn').onclick = async () => {
+  const np = $('newpw') && $('newpw').value;
+  if(np){
+    if(np.length < 6){ alert('كلمة السر لازم تكون 6 حروف على الأقل'); return; }
+    C.adminHash = await sha(np);
+  }
+  const txt = 'window.SITE_CONTENT = ' + JSON.stringify(C, null, 2) + ';\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], {type:'text/javascript'}));
+  a.download = 'content.js'; a.click();
+  dirty = false; $('state').textContent = 'تم التنزيل ✓ ارفع الملف على الاستضافة';
+  if(np) $('newpw').value = '';
+};
+
+$('imp').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  f.text().then(t => {
+    try { C = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}')+1)); draw(); mark(); }
+    catch(err){ alert('الملف غير صالح'); }
+  });
+};
+
+window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue=''; } });
+</script>
+</body>
+</html>
