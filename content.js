@@ -54,6 +54,24 @@ window.SITE_CONTENT = {
           "label": "إطلالة جانبية"
         }
       ]
+    },
+    {
+      "name": "الهودي البرجندي ",
+      "price": "600",
+      "desc": "",
+      "features": [],
+      "slides": [
+        {
+          "type": "image",
+          "src": "images/Picsart_26-10-23_19-06-58-461.jpg",
+          "label": "صورة أمامية"
+        },
+        {
+          "type": "image",
+          "src": "images/IMG_20261027_041209.png",
+          "label": ""
+        }
+      ]
     }
   ],
   "contact": {
