@@ -281,13 +281,13 @@
             height: 100%;
             position: relative;
             overflow: hidden;
-            background: #e6d8c1;
+            background: #f4ecdf;
         }
 
         .carousel-slide img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             object-position: center;
             display: block;
             position: absolute;
@@ -638,6 +638,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .color-name {
+            margin-top: 10px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
         .color-option:hover {
             transform: scale(1.08);
         }
@@ -840,18 +846,16 @@
                         <label class="form-label">المقاس</label>
                         <div class="size-selector-wrapper">
                             <div class="size-options">
-                                <div class="size-option" data-size="S"><span class="size-label">S</span><span class="size-sub">طول 130-145 سم</span></div>
-                                <div class="size-option" data-size="L"><span class="size-label">L</span><span class="size-sub">طول 145-160 سم</span></div>
-                                <div class="size-option" data-size="XL"><span class="size-label">XL</span><span class="size-sub">طول 160-175 سم</span></div>
+                                <div class="size-option" data-size="L"><span class="size-label">L</span><span class="size-sub">وزن 50-65 كجم</span></div>
+                                <div class="size-option" data-size="XL"><span class="size-label">XL</span><span class="size-sub">وزن 65-90 كجم</span></div>
                             </div>
                             <div class="size-chart">
                                 <div class="size-chart-title">📏 جدول المقاسات</div>
                                 <table class="size-table">
-                                    <thead><tr><th>المقاس</th><th>طول الدريس</th><th>مناسب لطول</th></tr></thead>
+                                    <thead><tr><th>المقاس</th><th>مناسب لوزن</th></tr></thead>
                                     <tbody>
-                                        <tr><td><strong>S</strong></td><td>135 سم</td><td>حتى 145 سم</td></tr>
-                                        <tr><td><strong>L</strong></td><td>145 سم</td><td>حتى 160 سم</td></tr>
-                                        <tr><td><strong>XL</strong></td><td>155 سم</td><td>حتى 175 سم</td></tr>
+                                        <tr><td><strong>L</strong></td><td>من 50 إلى 65 كجم</td></tr>
+                                        <tr><td><strong>XL</strong></td><td>من 65 إلى 90 كجم</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -862,9 +866,13 @@
                     <div class="form-group">
                         <label class="form-label">اللون</label>
                         <div class="color-options">
-                            <div class="color-option" data-color="بني شوكولاته" style="background-color: #674833;"></div>
+                            <div class="color-option" data-color="بني" role="button" tabindex="0" aria-label="بني" style="background-color: #674833;"></div>
+                            <div class="color-option" data-color="رصاصي" role="button" tabindex="0" aria-label="رصاصي" style="background-color: #8c8c8c;"></div>
+                            <div class="color-option" data-color="أسود" role="button" tabindex="0" aria-label="أسود" style="background-color: #1c1c1c;"></div>
+                            <div class="color-option" data-color="برجندي" role="button" tabindex="0" aria-label="برجندي" style="background-color: #582b30;"></div>
                         </div>
-                        <input type="hidden" id="color" value="بني شوكولاته" required>
+                        <div class="color-name" id="colorName">بني</div>
+                        <input type="hidden" id="color" value="بني" required>
                     </div>
 
                     <div class="form-group">
@@ -1020,7 +1028,9 @@
                     colorOptions.forEach(c => c.classList.remove('selected'));
                     this.classList.add('selected');
                     colorInput.value = this.getAttribute('data-color');
+                    document.getElementById('colorName').textContent = colorInput.value;
                 });
+                opt.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); } });
             });
             if (colorOptions.length) colorOptions[0].classList.add('selected');
 
@@ -1048,7 +1058,8 @@
                 colorOptions.forEach(c => c.classList.remove('selected'));
                 if (colorOptions.length) colorOptions[0].classList.add('selected');
                 sizeInput.value = '';
-                colorInput.value = colorOptions[0]?.getAttribute('data-color') || 'بني شوكولاته';
+                colorInput.value = colorOptions[0]?.getAttribute('data-color') || 'بني';
+                document.getElementById('colorName').textContent = colorInput.value;
             }
 
             whatsappBtn.addEventListener('click', function() {
