@@ -263,7 +263,7 @@
             position: relative;
             overflow: hidden;
             background: #ece1cf;
-            aspect-ratio: 3 / 4;
+            aspect-ratio: 4 / 5;
             width: 100%;
         }
 
@@ -294,6 +294,17 @@
             top: 0;
             left: 0;
         }
+
+        .carousel-slide[style*="--bg"]::before {
+            content: '';
+            position: absolute;
+            inset: -24px;
+            background: var(--bg) center / cover no-repeat;
+            filter: blur(26px) saturate(1.05);
+            opacity: 0.95;
+        }
+
+        .carousel-slide img { z-index: 1; }
 
         .carousel-slide video {
             width: 100%;
@@ -768,7 +779,7 @@
             .color-options { justify-content: center; }
             .whatsapp-btn { font-size: 1rem; padding: 14px; }
             .form-title { font-size: 1.5rem; }
-            .media-carousel { aspect-ratio: 3 / 4; }
+            .media-carousel { aspect-ratio: 4 / 5; }
             .carousel-btn { width: 32px; height: 32px; font-size: 1.2rem; }
         }
 
@@ -927,7 +938,7 @@
             $('productsGrid').innerHTML = C.products.map((p, i) => {
                 const slides = (p.slides && p.slides.length ? p.slides : [{type:'image', src:'', label:'صورة قريباً'}]).map((sl, k) => {
                     if (sl.src && sl.type === 'video') return '<div class="carousel-slide"><video src="' + esc(sl.src) + '" controls playsinline preload="metadata"></video></div>';
-                    if (sl.src) return '<div class="carousel-slide"><img src="' + esc(sl.src) + '" alt="' + esc(sl.label || p.name) + '" loading="lazy"></div>';
+                    if (sl.src) return '<div class="carousel-slide" style="--bg:url(\'' + esc(encodeURI(sl.src).replace(/'/g, '%27')) + '\')"><img src="' + esc(sl.src) + '" alt="' + esc(sl.label || p.name) + '" loading="lazy"></div>';
                     const vid = sl.type === 'video';
                     return '<div class="carousel-slide media-slot' + (vid ? ' video-slot' : '') + '"><div class="slot-placeholder"><div class="slot-icon">' + (vid ? '🎬' : icons[k % 4]) + '</div><div class="slot-text">' + esc(sl.label) + '</div><div class="slot-hint">(' + (vid ? 'فيديو' : 'صورة') + ' قريباً)</div></div></div>';
                 }).join('');
